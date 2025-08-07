@@ -76,31 +76,42 @@ export class ExmlModelHelper implements IDisposable {
 
 		node = nodeList[0];
 
-		const minPos = coordinateTransfrom({ x: 0, y: 0 }, node, groupNode.getParent());
-		for (i = 0; i < length; i++) {
-			node = nodeList[i];
-			var pos = coordinateTransfrom({ x: 0, y: 0 }, node, groupNode.getParent());
-			if (pos) {
-				if (minPos.x > pos.x) {
-					minPos.x = pos.x;
-				}
-				if (minPos.y > pos.y) {
-					minPos.y = pos.y;
-				}
-			}
-		}
-		groupNode.setNumber('x', Math.round(minPos.x * 100) / 100);
-		groupNode.setNumber('y', Math.round(minPos.y * 100) / 100);
-		nodeList.sort(sortOnDepth);
-		for (i = 0; i < length; i++) {
-			node = nodeList[i];
-			pos = coordinateTransfrom({ x: 0, y: 0 }, node, groupNode);
-			cleanRelatvieProps(node);
-			groupNode.addNode(node);
-			node.setNumber('x', Math.round(pos.x * 100) / 100);
-			node.setNumber('y', Math.round(pos.y * 100) / 100);
-		}
-		groupNode.setSelected(true);
+	    const minPos = coordinateTransfrom({ x: 0, y: 0 }, node, groupNode.getParent());
+	   // 记录每个节点的锚点
+	   let anchorXs: number[] = [];
+	   let anchorYs: number[] = [];
+	   for (i = 0; i < length; i++) {
+		   node = nodeList[i];
+		   var pos = coordinateTransfrom({ x: 0, y: 0 }, node, groupNode.getParent());
+		   let anchorX = node.getProperty('anchorOffsetX') ? node.getProperty('anchorOffsetX').getInstance() : 0;
+		   let anchorY = node.getProperty('anchorOffsetY') ? node.getProperty('anchorOffsetY').getInstance() : 0;
+		   anchorXs.push(anchorX);
+		   anchorYs.push(anchorY);
+		   if (pos) {
+			   if (minPos.x > pos.x) {
+				   minPos.x = pos.x;
+			   }
+			   if (minPos.y > pos.y) {
+				   minPos.y = pos.y;
+			   }
+		   }
+	   }
+	   groupNode.setNumber('x', Math.round(minPos.x * 100) / 100);
+	   groupNode.setNumber('y', Math.round(minPos.y * 100) / 100);
+	   nodeList.sort(sortOnDepth);
+	   for (i = 0; i < length; i++) {
+		   node = nodeList[i];
+		   // 计算锚点偏移后的位置
+		   let anchorX = anchorXs[i];
+		   let anchorY = anchorYs[i];
+		   pos = coordinateTransfrom({ x: 0, y: 0 }, node, groupNode);
+		   cleanRelatvieProps(node);
+		   groupNode.addNode(node);
+		   // 保持锚点不变，调整坐标
+		   node.setNumber('x', Math.round((pos.x + anchorX) * 100) / 100);
+		   node.setNumber('y', Math.round((pos.y + anchorY) * 100) / 100);
+	   }
+	   groupNode.setSelected(true);
 	}
 	/**
 	 * 删除选中的Group，并把子项都移动出来。
@@ -125,8 +136,10 @@ export class ExmlModelHelper implements IDisposable {
 				const node: INode = groupNode.getNodeAt(index);
 				parentNode.addNodeAt(node, nodeIndex);
 				const pos = coordinateTransfrom({ x: 0, y: 0 }, node, parentNode);
-				node.setNumber('x', Math.round((pos.x + groupNode.getInstance().x) * 100) / 100);
-				node.setNumber('y', Math.round((pos.y + groupNode.getInstance().y) * 100) / 100);
+				const anchorX = node.getProperty('anchorOffsetX') ? node.getProperty('anchorOffsetX').getInstance() : 0;
+				const anchorY = node.getProperty('anchorOffsetY') ? node.getProperty('anchorOffsetY').getInstance() : 0;
+				node.setNumber('x', Math.round((pos.x + anchorX + groupNode.getInstance().x) * 100) / 100);
+				node.setNumber('y', Math.round((pos.y + anchorY + groupNode.getInstance().y) * 100) / 100);
 				node.setSelected(true);
 			}
 			parentNode.removeNode(groupNode);

@@ -87,7 +87,7 @@ module.exports = {
 				use: 'node-loader',
 				exclude: /node_modules/
 			}, {
-				test: /\.(eot|woff|ttf|png|gif|svg|otf|exe)([\?]?.*)$/,
+				test: /\.(eot|woff|ttf|png|gif|otf|exe)([\?]?.*)$/,
 				use: [{
 					loader: 'file-loader',
 					options: {
@@ -106,6 +106,13 @@ module.exports = {
 						}
 					}
 				}]
+			},
+			{
+				test: /\.svg$/,
+				type: 'asset/resource',
+				generator: {
+					filename: '[path][name].[ext]'   // 不带 hash
+				}
 			}
 		]
 	},
@@ -142,7 +149,7 @@ module.exports = {
 	watchOptions: {
 		poll: 200,//监测修改的时间(ms)
 		aggregateTimeout: 500, //防止重复按键，500毫米内算按键一次
-		ignored: /node_modules/,//不监测
+		ignored: ['**/node_modules/**', '**/out/**'],//不监测
 	}
 }
 
