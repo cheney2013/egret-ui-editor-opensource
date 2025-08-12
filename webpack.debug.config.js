@@ -149,7 +149,7 @@ module.exports = {
 	watchOptions: {
 		poll: 200,//监测修改的时间(ms)
 		aggregateTimeout: 500, //防止重复按键，500毫米内算按键一次
-		ignored: ['**/node_modules/**', '**/out/**'],//不监测
+		ignored: ['**/node_modules/**', '**/out/**', '**/dist/**'],//不监测
 	}
 }
 

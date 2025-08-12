@@ -118,7 +118,7 @@ export class ExmlModelConfig {
 	/**
 	 * 根据ID获取对应的默认属性
 	 * @param id 类的短名ID
-     * @param ns 命名空间
+	 * @param ns 命名空间
 	 * @return 默认属性名
 	 */
 	public getDefaultPropById(id: string, ns: Namespace): string {
@@ -128,7 +128,13 @@ export class ExmlModelConfig {
 	 * 此方法和ExmlProjectConfig中的方法不同，如果该类是自定义类没有被注入到window中，则返回null
 	 */
 	public getClassNameById(id: string, ns: Namespace): string {
-		return this.exmlConfigInRuntime ? this.exmlConfigInRuntime.getClassNameById(id, ns.uri) : null;
+		// 优先查runtime
+		let className = this.exmlConfigInRuntime ? this.exmlConfigInRuntime.getClassNameById(id, ns.uri) : null;
+		// runtime查不到时，兜底查本地projectConfig
+		if (!className && this.projectConfig) {
+			className = this.projectConfig.getClassName(id, ns);
+		}
+		return className;
 	}
 	/**
 	 * 返回 name 参数指定的类的类对象引用。

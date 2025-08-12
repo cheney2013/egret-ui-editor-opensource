@@ -87,7 +87,7 @@ module.exports = {
 				use: 'node-loader',
 				exclude: /node_modules/
 			}, {
-				test: /\.(eot|woff|ttf|png|gif|svg|otf|exe)([\?]?.*)$/,
+				test: /\.(eot|woff|ttf|png|gif|otf|exe)([\?]?.*)$/,
 				use: [{
 					loader: 'file-loader',
 					options: {
@@ -106,6 +106,13 @@ module.exports = {
 						}
 					}
 				}]
+			},
+			{
+				test: /\.svg$/,
+				type: 'asset/resource',
+				generator: {
+					filename: '[path][name].[ext]'   // 不带 hash
+				}
 			}
 		]
 	},
@@ -136,7 +143,7 @@ module.exports = {
 		}),
 		new CopyWebpackPlugin([
 			{ from: '../resources/', to: './egret/workbench/electron-browser/bootstrap/resources/' },
-			{ from: './egret/workbench/services/files/watcher/win32/CodeHelper.exe', to: './egret/workbench/services/files/watcher/win32/CodeHelper.exe' }
+			{ from: './egret/workbench/services/files/watcher/win32/CodeHelper.exe', to: './egret/workbench/services/files/watcher/win32/CodeHelper.exe' },
 		]),
 		new TerserPlugin({
 			terserOptions: {
