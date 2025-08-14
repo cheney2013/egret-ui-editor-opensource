@@ -83,6 +83,6 @@
 			"installerIcon": "build/win/app.ico",
 			"uninstallerIcon": "build/win/app.ico"
 		},
-		"asar": false
+		"asar": true
     }
 }

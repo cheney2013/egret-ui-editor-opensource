@@ -132,14 +132,34 @@ export class ExmlModelHelper implements IDisposable {
 			const parentNode: IContainer = groupNode.getParent();
 			const numChildren: number = groupNode.getNumChildren();
 			const nodeIndex: number = parentNode.getNodeIndex(groupNode);
+			// 判断Group是否有布局属性
+			const horizontalCenter = groupNode.getProperty('horizontalCenter') ? groupNode.getProperty('horizontalCenter').getInstance() : null;
+			const verticalCenter = groupNode.getProperty('verticalCenter') ? groupNode.getProperty('verticalCenter').getInstance() : null;
+			let groupX = groupNode.getInstance().x;
+			let groupY = groupNode.getInstance().y;
+			// 如果有布局属性，自动计算实际x/y
+			if (horizontalCenter !== null && horizontalCenter !== undefined && parentNode.getInstance() && groupNode.getInstance()) {
+				const parentW = parentNode.getInstance().width;
+				const groupW = groupNode.getInstance().width;
+				if (!isNaN(parentW) && !isNaN(groupW)) {
+					groupX = (parentW - groupW) / 2 + horizontalCenter;
+				}
+			}
+			if (verticalCenter !== null && verticalCenter !== undefined && parentNode.getInstance() && groupNode.getInstance()) {
+				const parentH = parentNode.getInstance().height;
+				const groupH = groupNode.getInstance().height;
+				if (!isNaN(parentH) && !isNaN(groupH)) {
+					groupY = (parentH - groupH) / 2 + verticalCenter;
+				}
+			}
 			for (let index = numChildren - 1; index >= 0; index--) {
 				const node: INode = groupNode.getNodeAt(index);
 				parentNode.addNodeAt(node, nodeIndex);
 				const pos = coordinateTransfrom({ x: 0, y: 0 }, node, parentNode);
 				const anchorX = node.getProperty('anchorOffsetX') ? node.getProperty('anchorOffsetX').getInstance() : 0;
 				const anchorY = node.getProperty('anchorOffsetY') ? node.getProperty('anchorOffsetY').getInstance() : 0;
-				node.setNumber('x', Math.round((pos.x + anchorX + groupNode.getInstance().x) * 100) / 100);
-				node.setNumber('y', Math.round((pos.y + anchorY + groupNode.getInstance().y) * 100) / 100);
+				node.setNumber('x', Math.round((pos.x + anchorX + groupX) * 100) / 100);
+				node.setNumber('y', Math.round((pos.y + anchorY + groupY) * 100) / 100);
 				node.setSelected(true);
 			}
 			parentNode.removeNode(groupNode);
