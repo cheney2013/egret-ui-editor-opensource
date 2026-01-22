@@ -14,8 +14,12 @@ import 'vs/base/parts/tree/browser/tree.less';
 import { TreeNodeBase, TreeLeafNode, TreeParentNode, TreeNodeType } from 'egret/workbench/parts/assets/material/common/TreeModel';
 import { ResInfoVO } from 'egret/workbench/parts/assets/material/common/ResInfoVO';
 import { EUI } from 'egret/exts/exml-exts/exml/common/project/parsers/core/commons';
+import { IEgretProjectService } from 'egret/exts/exml-exts/project';
 import { IClipboardService } from 'egret/platform/clipboard/common/clipboardService';
 import { IDisposable } from 'vs/base/common/lifecycle';
+import * as cp from 'child_process';
+import * as path from 'path';
+import { isWindows, isMacintosh } from 'egret/base/common/platform';
 import { dispose } from 'egret/base/common/lifecycle';
 import { matchesFuzzy } from 'egret/base/common/filters';
 import { localize } from 'egret/base/localization/nls';
@@ -343,6 +347,7 @@ export class MaterialRenderer implements IRenderer {
 
 enum ContextMenuId {
 	COPY_RES_NAME = 'copyResName',
+	REVEAL_IN_OS = 'revealInOs'
 }
 
 /**
@@ -351,7 +356,10 @@ enum ContextMenuId {
 export class MaterialController extends DefaultController implements IController {
 	private previousSelectionRangeStop: TreeNodeBase;
 
-	constructor(@IWorkbenchEditorService private editorService: IWorkbenchEditorService) {
+	constructor(
+		@IWorkbenchEditorService private editorService: IWorkbenchEditorService,
+		@IEgretProjectService private projectService: IEgretProjectService
+	) {
 		super({ clickBehavior: ClickBehavior.ON_MOUSE_UP, keyboardSupport: true, openMode: OpenMode.SINGLE_CLICK });
 		this.initContextMenuGeneral();
 	}
@@ -443,6 +451,11 @@ export class MaterialController extends DefaultController implements IController
 	 */
 	private initContextMenuGeneral(): void {
 		this.addContextMenuItemGeneral({ label: localize('materialView.contextMenu.copyResName', 'Copy Resource Name'), id: ContextMenuId.COPY_RES_NAME });
+		if (isMacintosh) {
+			this.addContextMenuItemGeneral({ label: localize('fileController.initContextMenuGeneral.openInFinder', 'Reveal in Finder'), id: ContextMenuId.REVEAL_IN_OS });
+		} else {
+			this.addContextMenuItemGeneral({ label: localize('fileController.initContextMenuGeneral.openInResourceManager', 'Reveal in System Explorer'), id: ContextMenuId.REVEAL_IN_OS });
+		}
 	}
 
 	private contextMenuItemsGeneral: { type: 'separator' | 'normal', option: MenuItemConstructorOptions, item: MenuItem }[] = [];
@@ -471,6 +484,9 @@ export class MaterialController extends DefaultController implements IController
 		switch (action) {
 			case ContextMenuId.COPY_RES_NAME:
 				this.copyResName();
+				break;
+			case ContextMenuId.REVEAL_IN_OS:
+				this.revealInOs();
 				break;
 			default:
 				break;
@@ -508,6 +524,45 @@ export class MaterialController extends DefaultController implements IController
 		}
 	}
 
+	private revealInOs(): void {
+		const targetPath = this.getTargetPath(this.selectedItem);
+		if (targetPath) {
+			if (isWindows) {
+				cp.exec(`explorer.exe /select,"${path.normalize(targetPath)}"`);
+			} else {
+				remote.shell.showItemInFolder(targetPath);
+			}
+		}
+	}
+
+	private getTargetPath(node: TreeNodeBase): string {
+		if (!node) return null;
+		if (node instanceof TreeLeafNode) {
+			return node.resvo ? node.resvo.locolUrl : null;
+		} else if (node instanceof TreeParentNode) {
+			if (!this.projectService.projectModel) return null;
+
+			const resConfigs = this.projectService.projectModel.resConfigs;
+			const projectRoot = this.projectService.projectModel.project.fsPath;
+			const nodeResFile = path.normalize(node.resFile).substr(3); // Normalize ../a/b to ..\a\b
+
+			let model = null;
+			for (let i = 0; i < resConfigs.length; i++) {
+				const config = resConfigs[i];
+				const calculatedRel = path.relative(config.folder, config.url);
+				if (path.normalize(calculatedRel) === nodeResFile) {
+					model = node.type !== 'json' ? config.folder + node.model : config.folder + nodeResFile;
+					break;
+				}
+			}
+
+			if (model !== null) {
+				return path.join(projectRoot, model);
+			}
+		}
+		return null;
+	}
+
 
 	/**
 	 * 请求菜单内容的时候
@@ -515,25 +570,34 @@ export class MaterialController extends DefaultController implements IController
 	 * @param stat 
 	 * @param event 
 	 */
-	public onContextMenu(tree: ITree, stat: TreeNodeBase | Model, event: ContextMenuEvent): boolean {
-		if (stat instanceof Model) {
-			return true;
-		}
+	public onContextMenu(tree: ITree, stat: TreeNodeBase, event: ContextMenuEvent): boolean {
+		tree.setFocus(stat);
+		this.selectedItem = stat;
 		let creat: boolean;
 		if (stat instanceof TreeLeafNode) {
 			creat = true;
-		} else if (stat instanceof TreeParentNode && stat.type === ResType.TYPE_SHEET) {
+		} else if (stat instanceof TreeParentNode) {
 			creat = true;
 		}
 		if (creat) {
-			tree.setFocus(stat);
-			this.selectedItem = stat;
+			// Update menu items visibility
+			for (const item of this.contextMenuItemsGeneral) {
+				if (item.option.id === ContextMenuId.COPY_RES_NAME) {
+					// Only show Copy Resource Name for Leaf Nodes or Sheet (which are ParentNodes but act as files)
+					if (stat instanceof TreeLeafNode) {
+						item.item.visible = true;
+					} else if (stat instanceof TreeParentNode && stat.type === ResType.TYPE_SHEET) {
+						item.item.visible = true;
+					} else {
+						item.item.visible = false;
+					}
+				}
+			}
 
-			setTimeout(() => {
-				this.createContextMenu().popup({
-					window: remote.getCurrentWindow()
-				});
-			}, 10);
+			const menu = this.createContextMenu();
+			menu.popup({
+				window: remote.getCurrentWindow()
+			});
 		}
 		return true;
 	}

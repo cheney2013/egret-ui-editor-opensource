@@ -248,7 +248,11 @@ export class RevealFileInOsOperation implements IOperation {
 			}
 		}
 		if(showPath){
-			shell.showItemInFolder(showPath);
+			if (isWindows) {
+				cp.exec(`explorer.exe /select,"${paths.normalize(showPath)}"`);
+			} else {
+				shell.showItemInFolder(showPath);
+			}
 		} else {
 			this.notificationService.warn({ content: localize('revealFileInOsOperation.run.notSelectFile', 'There are currently no selected files and cannot be displayed in the System Explorer'), duration: 3 });
 		}
