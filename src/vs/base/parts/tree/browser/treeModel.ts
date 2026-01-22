@@ -1177,7 +1177,7 @@ export class TreeModel {
 		this._onDidHighlight.fire(eventData);
 	}
 
-	public getHighlight(includeHidden: boolean = false): any {
+	public getHighlight(includeHidden: boolean = true): any {
 		let result = this.getElementsWithTrait('highlighted', includeHidden);
 		return result.length === 0 ? null : result[0];
 	}
@@ -1250,7 +1250,7 @@ export class TreeModel {
 		return item.hasTrait('selected');
 	}
 
-	public getSelection(includeHidden: boolean = false): any[] {
+	public getSelection(includeHidden: boolean = true): any[] {
 		return this.getElementsWithTrait('selected', includeHidden);
 	}
 
@@ -1340,7 +1340,7 @@ export class TreeModel {
 		return item.hasTrait('focused');
 	}
 
-	public getFocus(includeHidden: boolean = false): any {
+	public getFocus(includeHidden: boolean = true): any {
 		let result = this.getElementsWithTrait('focused', includeHidden);
 		return result.length === 0 ? null : result[0];
 	}

@@ -1396,7 +1396,7 @@ export class ENode extends EObject implements INode {
 	 * @param value 
 	 */
 	public setSelected(value: boolean): void {
-		if (this._selected === value || this.getLocked() || !this.getInDisplayList()) {
+		if (this._selected === value) {
 			return;
 		}
 		//节点删除时的选中状态改变事件，在ExmlModel中实现。

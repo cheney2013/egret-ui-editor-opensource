@@ -30,9 +30,6 @@ export class DomLayerTreeController implements IController {
 	}
 
 	onClick(tree: ITree, element: INode, event: Mouse.IMouseEvent): boolean {
-		if (element.getLocked()) {
-			return;
-		}
 		const isMac = platform.isMacintosh;
 		const isWindows = platform.isWindows;
 		const selectionAction = ((isMac && event.metaKey) || (isWindows && event.ctrlKey));

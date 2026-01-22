@@ -298,7 +298,8 @@ export class LayerView extends PanelContentDom implements IModelRequirePart, IFo
 
 	private updateGroupActionState(): void {
 		const selection: INode[] = this.tree.getSelection();
-		if (selection.length >= 2) {
+		// 允许选择单个或多个对象时启用 Group 按钮
+		if (selection.length >= 1) {
 			let sameDepth: boolean = true;
 			const firstSelectItem = selection[0];
 			const firstSelectNestLevel = firstSelectItem.getNestLevel();

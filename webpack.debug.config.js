@@ -87,7 +87,7 @@ module.exports = {
 				use: 'node-loader',
 				exclude: /node_modules/
 			}, {
-				test: /\.(eot|woff|ttf|png|gif|otf|exe)([\?]?.*)$/,
+				test: /\.(eot|woff|ttf|otf|exe)([\?]?.*)$/,
 				use: [{
 					loader: 'file-loader',
 					options: {
@@ -108,10 +108,17 @@ module.exports = {
 				}]
 			},
 			{
+				test: /\.(png|gif)$/,
+				type: 'asset/resource',
+				generator: {
+					filename: '[path][name][ext]'   // 不带 hash，保持原始路径
+				}
+			},
+			{
 				test: /\.svg$/,
 				type: 'asset/resource',
 				generator: {
-					filename: '[path][name].[ext]'   // 不带 hash
+					filename: '[path][name][ext]'   // 不带 hash
 				}
 			}
 		]

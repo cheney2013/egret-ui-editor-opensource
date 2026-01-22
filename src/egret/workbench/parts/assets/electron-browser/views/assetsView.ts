@@ -18,6 +18,9 @@ import { IFocusablePart } from 'egret/platform/operations/common/operations';
 import { voluationToStyle } from 'egret/base/common/dom';
 import { localize } from 'egret/base/localization/nls';
 
+import { ResGlobalEventManager } from 'egret/workbench/parts/assets/material/event/ResGlobalEventManager';
+import { ResGlobalEvents } from 'egret/workbench/parts/assets/material/event/ResGlobalEvents';
+
 import './media/assetsView.css';
 
 
@@ -78,6 +81,7 @@ export class AssetsView extends PanelContentDom implements IModelRequirePart, IF
 		this.separatorHandle.bind(this);
 		this.egretProjectService.onProjectConfigChanged(e => this.refresh());
 		this.egretProjectService.onResConfigChanged(e => this.refresh());
+		ResGlobalEventManager.addListen(ResGlobalEvents.Json_Modifyed, this.onResConfigModify, this);
 	}
 
 
@@ -239,6 +243,10 @@ export class AssetsView extends PanelContentDom implements IModelRequirePart, IF
 			//TODO 选中激活的编辑器
 			return Promise.resolve(null);
 		});
+	}
+
+	private onResConfigModify() {
+		this.refresh();
 	}
 
 
@@ -503,6 +511,7 @@ export class AssetsView extends PanelContentDom implements IModelRequirePart, IF
 	 */
 	public dispose(): void {
 		//TODO 释放当前组件中的引用和事件监听
+		ResGlobalEventManager.removeListen(ResGlobalEvents.Json_Modifyed, this.onResConfigModify, this);
 		this.separatorLine.removeEventListener('mouseenter', this.separatorHandle);
 		this.separatorLine.removeEventListener('mouseleave', this.separatorHandle);
 		this.separatorLine.removeEventListener('mousedown', this.separatorHandle);

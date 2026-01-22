@@ -336,7 +336,7 @@ export class OperateLayer {
 			if (tmpP.x < 0 || tmpP.y < 0 || tmpP.x > item.width || tmpP.y > item.height) {
 				continue;
 			}
-			if (item.canSelect) {
+			if (item.getVisible() && !item.targetNode.getLocked()) {
 				return item;
 			}
 		}

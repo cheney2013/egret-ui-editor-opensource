@@ -171,7 +171,7 @@ export class FocusRectLayer extends EventDispatcher implements IAbosrbLineProvid
 	}
 	/**获取所有选中的焦点矩形 */
 	public getAllSelectedFocusRect(): FocusRectExt[] {
-		//犹豫种种原因，选中的数据并不代表对应的焦点矩形就可被选中，比如子父级关系的数据
+		//由于种种原因，选中的数据并不代表对应的焦点矩形就可被选中，比如子父级关系的数据
 		//操作层会认为此方法返回的数据一定是可以被部署九点变换框的数据
 		let allFocusRect: FocusRectExt[] = [];
 		this.getAllChildFcousRect(this.getRootFocusRect(), allFocusRect);
@@ -1068,7 +1068,7 @@ export class FocusRectLayer extends EventDispatcher implements IAbosrbLineProvid
 		var result: Array<FocusRectExt> = [];
 		for (var i: number = 0; i < focusRects.length; i++) {
 			var rect: FocusRectExt = focusRects[i];
-			if (rect.canSelect) {
+			if (rect.getVisible() && !rect.targetNode.getLocked()) {
 				var stageBounds: Rectangle = this.getFocusRectBounds(rect);
 				if (mustContains) {
 					if (range.containsRect(stageBounds)) {
@@ -1636,12 +1636,14 @@ export class FocusRect extends EventDispatcher {
 	/**是否可被选择 */
 	public get canSelect(): boolean {
 		let node: INode = this.targetNode;
-		if (node && !node.getLocked() && this.getVisible()) {
+		if (node) {
 			return true;
 		}
 		return false;
-	}//获取可见度
-	private getVisible(): boolean {
+	}
+	
+	//获取可见度
+	public getVisible(): boolean {
 		if (!this.targetNode) {
 			return false;
 		}

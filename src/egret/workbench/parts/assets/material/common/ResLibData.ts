@@ -113,6 +113,13 @@ export class ResLibData {
 			const change: IFileChange = e.changes[i];
 
 			if (FileChangeType.UPDATED === change.type) {// 只处理update的
+				// 检查是否是资源配置文件改变
+				for (const resJsonPath in ResLibData.caches) {
+					if (paths.normalize(change.resource.fsPath.toLowerCase()) === paths.normalize(resJsonPath.toLowerCase())) {
+						ResGlobalEventManager.sendEvent(ResGlobalEvents.Json_Modifyed);
+					}
+				}
+
 				for (const i in ResLibData.caches) {
 					const list = ResLibData.caches[i];
 					for (let k: number = 0; k < list.length; k++) {
