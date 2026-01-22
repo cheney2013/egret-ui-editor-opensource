@@ -50,6 +50,8 @@ import { IOutputService } from '../parts/output/common/output';
 import { OutPutService } from '../parts/output/common/outputService';
 import { ExplorerService } from '../parts/files/common/explorerService';
 
+import { IEgretProjectService } from 'egret/exts/exml-exts/project';
+
 const WORKBENCH_GLOBAL_STORAGE = 'workbenchGlobalStorageKey';
 /**
  * 工作台
@@ -310,6 +312,16 @@ export class Workbench implements IFocusablePart {
 
 	private registerListeners(): void {
 		this.toDispose.push(this.lifecycleService.onShutdown(reload => this.shutdown()));
+
+		const window = remote.getCurrentWindow();
+		window.on('focus', () => {
+			this.instantiationService.invokeFunction(accessor => {
+				const egretProjectService = accessor.get(IEgretProjectService);
+				if (egretProjectService) {
+					egretProjectService.refreshResConfig();
+				}
+			});
+		});
 	}
 
 	private shutdown(): void {

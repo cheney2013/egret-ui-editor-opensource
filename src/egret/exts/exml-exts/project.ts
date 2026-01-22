@@ -57,4 +57,8 @@ export interface IEgretProjectService {
 	 * @param parentModel 父级数据模块
 	 */
 	createSubExmlModel(exmlString: string, parentModel: IExmlModel): IExmlModel;
+	/**
+	 * 强制刷新资源配置
+	 */
+	refreshResConfig(): void;
 }

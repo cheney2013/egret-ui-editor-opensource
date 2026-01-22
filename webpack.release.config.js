@@ -87,7 +87,13 @@ module.exports = {
 				use: 'node-loader',
 				exclude: /node_modules/
 			}, {
-				test: /\.(eot|woff|ttf|png|gif|otf|exe)([\?]?.*)$/,
+				test: /\.(png|gif)$/,
+				type: 'asset/resource',
+				generator: {
+					filename: '[path][name][ext]'
+				}
+			}, {
+				test: /\.(eot|woff|ttf|otf|exe)([\?]?.*)$/,
 				use: [{
 					loader: 'file-loader',
 					options: {

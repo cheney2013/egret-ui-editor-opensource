@@ -315,4 +315,8 @@ class EgretProjectService implements IEgretProjectService {
 		}
 		return null;
 	}
+
+	public refreshResConfig(): void {
+		this._onResConfigChanged.fire();
+	}
 }
